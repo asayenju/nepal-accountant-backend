@@ -9,4 +9,20 @@ public record SupabaseProperties(
 		String serviceRoleKey,
 		String invoiceBucket
 ) {
+
+	public boolean hasConfiguredUrl() {
+		return hasText(url) && !url.contains("your-project.supabase.co");
+	}
+
+	public boolean hasConfiguredAnonKey() {
+		return hasText(anonKey) && !"replace-me".equals(anonKey);
+	}
+
+	public boolean hasConfiguredServiceRoleKey() {
+		return hasText(serviceRoleKey) && !"replace-me".equals(serviceRoleKey);
+	}
+
+	private boolean hasText(String value) {
+		return value != null && !value.trim().isEmpty();
+	}
 }

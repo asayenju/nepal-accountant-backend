@@ -39,4 +39,24 @@ public class GlobalExceptionHandler {
 		));
 	}
 
+	@ExceptionHandler(SupabaseAuthException.class)
+	public ResponseEntity<ApiErrorResponse> handleSupabaseAuth(SupabaseAuthException exception) {
+		return ResponseEntity.status(exception.status()).body(new ApiErrorResponse(
+				"SUPABASE_AUTH_ERROR",
+				exception.getMessage(),
+				List.of(),
+				OffsetDateTime.now()
+		));
+	}
+
+	@ExceptionHandler(UnauthorizedException.class)
+	public ResponseEntity<ApiErrorResponse> handleUnauthorized(UnauthorizedException exception) {
+		return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(new ApiErrorResponse(
+				"UNAUTHORIZED",
+				exception.getMessage(),
+				List.of(),
+				OffsetDateTime.now()
+		));
+	}
+
 }
