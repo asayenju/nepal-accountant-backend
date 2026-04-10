@@ -59,4 +59,14 @@ public class GlobalExceptionHandler {
 		));
 	}
 
+	@ExceptionHandler(ResourceNotFoundException.class)
+	public ResponseEntity<ApiErrorResponse> handleNotFound(ResourceNotFoundException exception) {
+		return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ApiErrorResponse(
+				"NOT_FOUND",
+				exception.getMessage(),
+				List.of(),
+				OffsetDateTime.now()
+		));
+	}
+
 }

@@ -12,6 +12,7 @@ import org.springframework.web.servlet.HandlerInterceptor;
 public class BearerAuthInterceptor implements HandlerInterceptor {
 
 	public static final String AUTHENTICATED_USER_ATTRIBUTE = "authenticatedUser";
+	public static final String ACCESS_TOKEN_ATTRIBUTE = "accessToken";
 
 	private final AuthSessionService authSessionService;
 
@@ -33,6 +34,7 @@ public class BearerAuthInterceptor implements HandlerInterceptor {
 
 		AuthenticatedUser authenticatedUser = authSessionService.validateAccessToken(accessToken);
 		request.setAttribute(AUTHENTICATED_USER_ATTRIBUTE, authenticatedUser);
+		request.setAttribute(ACCESS_TOKEN_ATTRIBUTE, accessToken);
 		return true;
 	}
 
