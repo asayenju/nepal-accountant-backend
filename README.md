@@ -1,6 +1,6 @@
-# Arthik — Digital Lending for Nepali SMEs
+# Arthik — SME Financial Access & Lender-Readiness Platform
 
-> Smart financial tools for small businesses. Track revenue, manage invoices, and access working capital — all in one place.
+> Digital bookkeeping and credit scoring for Nepali small businesses. Build verifiable financial history to access working capital without collateral.
 
 ---
 
@@ -35,33 +35,30 @@ SME accesses working capital in days, not months
 
 ## Core Features
 
-### Revenue and Profit Tracking
+### Digital Bookkeeping
 - Real-time dashboard showing monthly revenue, expenses, and net profit
-- Unpaid invoice tracking — know exactly who owes you money
+- Client management with payment history tracking
+- Invoice creation, sending, and payment status monitoring
+- Expense recording by category with receipt management
 - Cash flow forecasting based on historical patterns
-- Client payment history to identify reliable and slow payers
 
-### Invoice Management
-- Create and send professional digital invoices directly to clients
-- AI-powered invoice extraction — photograph a paper invoice and let the app read it
-- Automatic VAT calculation at 13% per Nepal IRD requirements
-- Track invoice status: draft, sent, paid, overdue
-
-### Expense Recording
-- Log business expenses by category
-- Photograph receipts for AI extraction
-- Full profit and loss view at any time
-
-### Lending Eligibility
-- Continuous credit score built from real business data
+### Lender-Readiness Scoring
+- Transparent credit score built from real business data
+- 8 core lender metrics: revenue stability, profit margins, payment collection speed, customer concentration, expense ratios, cash flow volatility, data completeness, and business verification status
 - Loan offers based on actual revenue, not collateral
 - One-tap application flow for pre-qualified businesses
-- Partner microfinance institutions handle disbursement
+
+### Cash Flow Visibility
+- Unpaid invoice tracking — know exactly who owes you money
+- Monthly cash flow projections
+- Payment overdue alerts and aging reports
+- Receivables management dashboard
 
 ### Tax Compliance (lightweight)
 - Auto-generated VAT summary from invoices each month
 - IRD-compliant invoice formats with PAN and VAT numbers
-- CBMS integration for businesses that cross the NPR 10 crore threshold
+- Exportable transaction records for tax filing
+- Optional compliance reports for CBMS integration
 
 ---
 
@@ -83,13 +80,13 @@ SME accesses working capital in days, not months
 ```
 Mobile / Web Client
         ↓
-Spring Boot API (auth, business logic, lending score)
+Spring Boot API (auth, business logic, lender scoring)
         ↓
 Supabase (Postgres + Auth + Storage)
         ↓
 AI Pipeline (invoice photo → structured data)
         ↓
-IRD CBMS (real-time sync for eligible businesses)
+Partner Lenders (score-based loan offers)
 ```
 
 ---
@@ -108,6 +105,7 @@ POST   /api/v1/businesses
 GET    /api/v1/businesses
 GET    /api/v1/businesses/{businessId}
 PUT    /api/v1/businesses/{businessId}
+DELETE /api/v1/businesses/{businessId}
 ```
 
 ### Clients
@@ -115,6 +113,8 @@ PUT    /api/v1/businesses/{businessId}
 POST   /api/v1/businesses/{businessId}/clients
 GET    /api/v1/businesses/{businessId}/clients
 GET    /api/v1/businesses/{businessId}/clients/{clientId}
+PUT    /api/v1/businesses/{businessId}/clients/{clientId}
+DELETE /api/v1/businesses/{businessId}/clients/{clientId}
 ```
 
 ### Invoices
@@ -123,6 +123,7 @@ POST   /api/v1/businesses/{businessId}/invoices
 GET    /api/v1/businesses/{businessId}/invoices
 GET    /api/v1/businesses/{businessId}/invoices/{invoiceId}
 PUT    /api/v1/businesses/{businessId}/invoices/{invoiceId}
+DELETE /api/v1/businesses/{businessId}/invoices/{invoiceId}
 POST   /api/v1/invoices/analyze          ← AI extraction from photo
 ```
 
@@ -130,30 +131,65 @@ POST   /api/v1/invoices/analyze          ← AI extraction from photo
 ```
 POST   /api/v1/businesses/{businessId}/expenses
 GET    /api/v1/businesses/{businessId}/expenses
+GET    /api/v1/businesses/{businessId}/expenses/{expenseId}
+PUT    /api/v1/businesses/{businessId}/expenses/{expenseId}
+DELETE /api/v1/businesses/{businessId}/expenses/{expenseId}
 ```
 
-### Dashboard
+### Payments
+```
+POST   /api/v1/businesses/{businessId}/payments
+GET    /api/v1/businesses/{businessId}/payments
+GET    /api/v1/businesses/{businessId}/payments/{paymentId}
+PUT    /api/v1/businesses/{businessId}/payments/{paymentId}
+DELETE /api/v1/businesses/{businessId}/payments/{paymentId}
+```
+
+### Dashboard & Analytics
 ```
 GET    /api/v1/businesses/{businessId}/dashboard
 GET    /api/v1/businesses/{businessId}/cashflow
+GET    /api/v1/businesses/{businessId}/analytics/revenue
+GET    /api/v1/businesses/{businessId}/analytics/expenses
+GET    /api/v1/businesses/{businessId}/analytics/profit
+GET    /api/v1/businesses/{businessId}/analytics/receivables
+GET    /api/v1/businesses/{businessId}/analytics/overdue
 ```
 
-### Lending
+### Lender-Readiness
 ```
-GET    /api/v1/businesses/{businessId}/lending/score
-POST   /api/v1/businesses/{businessId}/lending/apply
+GET    /api/v1/businesses/{businessId}/financial-summary    ← Bank-friendly summary
+GET    /api/v1/businesses/{businessId}/lending/score        ← Credit score + reasons
+GET    /api/v1/businesses/{businessId}/lending/metrics      ← 8 core lender metrics
+POST   /api/v1/businesses/{businessId}/lending/apply        ← Loan application
 ```
 
-### Tax
+### Tax (Lightweight)
 ```
 GET    /api/v1/businesses/{businessId}/tax/vat-summary
-POST   /api/v1/businesses/{businessId}/tax/returns
+GET    /api/v1/businesses/{businessId}/tax/transactions     ← Exportable records
+POST   /api/v1/businesses/{businessId}/tax/returns          ← Optional compliance reports
 ```
 
 ### System
 ```
 GET    /api/v1/system/health
 ```
+
+---
+
+## Core Lender Metrics
+
+Before building more endpoints, we define these 8 metrics that banks actually care about:
+
+1. **Revenue Stability** - Month-over-month revenue volatility (lower is better)
+2. **Profit Margin** - Average profit as percentage of revenue
+3. **Payment Collection Speed** - Average days to collect invoice payments
+4. **Customer Concentration** - Percentage of revenue from top 3 clients (lower risk if <30%)
+5. **Expense Ratio** - Operating expenses as percentage of revenue
+6. **Cash Flow Volatility** - Month-over-month cash flow variation
+7. **Data Completeness** - Percentage of transactions with proper categorization
+8. **Business Verification** - Document verification status (PAN, VAT, business registration)
 
 ---
 
@@ -167,7 +203,7 @@ users
         │     └── invoice_line_items
         ├── expenses
         ├── payments (linked to invoices)
-        └── tax_returns
+        └── tax_returns (optional)
 ```
 
 All tables use Row Level Security (RLS). Users can only access data belonging to their own businesses.
@@ -207,6 +243,67 @@ cp .env.example .env
 # Health check
 curl http://localhost:8080/api/v1/system/health
 ```
+
+---
+
+## Recommended Project Plan
+
+### Phase 1: Reframe the product ✅
+- Update naming and documentation so the backend is clearly "SME financial access and lender-readiness," with tax as a secondary feature
+- Rewrite the roadmap around bookkeeping, cash flow visibility, and credit scoring
+- Define 8 core lender metrics before writing more endpoints
+
+### Phase 2: Build core financial records
+- Add persisted tables and CRUD APIs for clients, invoices, expenses, payments
+- Add statuses and timestamps that support analysis, not just storage
+- Keep everything scoped by business_id and protected by Supabase RLS
+
+### Phase 3: Build analytics
+- Add dashboard endpoints for revenue, expenses, profit, receivables, overdue invoices, and monthly cash flow
+- Add a "financial summary" endpoint that banks can understand quickly
+- Add a "data completeness" score so lenders know how trustworthy the numbers are
+
+### Phase 4: Build lender-readiness / credit scoring
+- Start with a transparent rule-based score, not a black-box ML model
+- Return score plus reasons, for example: strong invoice repayment history, low revenue volatility, high customer concentration
+- Add document and business verification flags
+
+### Phase 5: Add AI ingestion where it truly helps
+- Invoice OCR
+- Receipt OCR
+- Categorization suggestions
+- Manual review workflow when confidence is low
+
+### Phase 6: Keep tax lightweight
+- VAT summaries
+- Exportable transaction records
+- Optional compliance reports
+- Tax should reuse the same bookkeeping data, not create a separate product track
+
+---
+
+## Concrete Next Steps For This Repo
+
+If I were prioritizing the next 2 weeks, I'd do this:
+
+1. **Update README and pom.xml language** to match the new direction
+2. **Design Supabase tables** for clients, invoices, payments, expenses
+3. **Implement CRUD** for those four areas
+4. **Add one real dashboard endpoint**: monthly revenue, expenses, profit, unpaid invoices
+5. **Add one lender-readiness endpoint**: GET /businesses/{id}/financial-summary
+6. **Add tests** for auth protection, business ownership, and financial calculations
+7. **Leave tax return generation** as a later derived feature
+
+---
+
+## Biggest Gaps Right Now
+
+- Many APIs in the README do not exist yet: README.md (line 113)
+- Invoice and tax services are stubs, not real workflows: InvoiceProcessingService.java (line 14), TaxReturnService.java (line 13)
+- No domain model yet for lender analysis data
+- No scoring logic yet
+- Almost no tests
+- Product description in code still reflects the older tax-heavy positioning: pom.xml (line 15)
 
 ---
 
